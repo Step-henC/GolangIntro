@@ -67,10 +67,54 @@ func addBook(c *gin.Context) { // context stores all info related to specific re
 	c.IndentedJSON(http.StatusCreated, newBook) //return the book we just created
 
 }
+
+func checkOutBook(c *gin.Context) {
+
+	id, ok := c.GetQuery("id") // query looks like ?id=2
+	if ok == false {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Missing id query parameter"})
+	}
+
+	book, err := getBookById(id)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found"}) //H allows customized json
+		return
+	}
+
+	if book.Quantity <= 0 {
+
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not Available"}) //H allows customized json
+		return
+	}
+	book.Quantity -= 1
+	c.IndentedJSON(http.StatusOK, book)
+}
+
+func returnBook(c *gin.Context) {
+	id, ok := c.GetQuery("id") // query looks like ?id=2
+	if ok == false {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Missing id query parameter"})
+	}
+
+	book, err := getBookById(id)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found"}) //H allows customized json
+		return
+	}
+
+	if book.Quantity <= 0 {
+
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not Available"}) //H allows customized json
+		return
+	}
+	book.Quantity += 1
+	c.IndentedJSON(http.StatusOK, book)
+}
 func main() {
 	router := gin.Default() //create router to handle routes
 	router.GET("/books", getBooks)
 	router.POST("/books", addBook)
 	router.GET("/books/:id", bookById)
+	router.PATCH("/checkout", checkOutBook)
 	router.Run("localhost:8080")
 }
